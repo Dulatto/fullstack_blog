@@ -41,7 +41,7 @@ app.post('/auth/login', async (req, res) => {
         },
             'secret123',
             {
-                expiresIn: '5000'
+                expiresIn: '30d'
             }
         )
 
@@ -84,7 +84,7 @@ app.post('/auth/register', registerValidation, async (req, res) => {
         },
             'secret123',
             {
-                expiresIn: '5000'
+                expiresIn: '30d'
             }
         )
 
@@ -102,13 +102,23 @@ app.post('/auth/register', registerValidation, async (req, res) => {
     }
 })
 
-app.get('/auth/me', checkAuth, (req, res) => {
+app.get('/auth/me', checkAuth, async (req, res) => {
     try {
-        res.json({
-            success: true
-        })
-    } catch (err) {
+        const user = await UserModel.findById(req.userId)
+        if (!user) {
+            return res.status(404).json({
+                message: 'User not found'
+            })
+        }
+        const { passwordHash, ...userData } = user._doc;
 
+        res.json(userData)
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: 'No access to'
+        })
     }
 
 });
